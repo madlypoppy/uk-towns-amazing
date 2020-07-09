@@ -1,7 +1,5 @@
 import csv # give python csv superpowers
 
-with open(r"uk-towns-sample.csv") as csvfile:
-    reader = csv.DictReader(csvfile)
 
 from sqlalchemy import Integer, Column, String, ForeignKey, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
@@ -19,8 +17,8 @@ class Country(Base):
 
 
 # County is a child of Country
-class County(Base):
-    __tablename__ = 'county'
+class Town(Base):
+    __tablename__ = 'town'
     id = Column(Integer, primary_key=True)
     county = Column(String)
     country_name = Column(String)
@@ -36,7 +34,7 @@ class County(Base):
     nuts_region = Column(String)
     town_type = Column(String)
     # We define the relationship between Country and County here.
-    country = relation("Country", backref="county")
+    country = relation("Country", backref="town")
     country_id = Column(Integer, ForeignKey('country.id'))
 
 
@@ -51,29 +49,30 @@ def dbconnect():
 ''' Above here defines the DB'''
 ''' Below here adds data to the DB '''
 
-def addCounty(session, county_input):
+def addTown(session, town_input):
     # Try and get the Country from the database. If error (Except) add to the database.
-    try: 
-        country = session.query(Country).filter(Country.country == county_input["country"]).one()
-    except:
-        country = Country()
-        country.country = county_input["country"]
-        session.add(country)
-    county = County()
+    town = Town()
     # Add attributes
-    county.county = county_input["county"]
-    county.name = county_input["name"]
-    county.grid_reference = county_input["grid_reference"]
-    county.easting = county_input["easting"]
-    county.northing = county_input["northing"]
-    county.latitude = county_input["latitude"]
-    county.longitude = county_input["longitude"]
-    county.elevation = county_input["elevation"]
-    county.postcode_sector = county_input["postcode_sector"]
-    county.local_government_area = county_input["local_government_area"]
-    county.nuts_region = county_input["nuts_region"]
-    county.town_type = county_input["town_type"]
+    town.county = town_input["county"]
+    town.name = town_input["name"]
+    town.grid_reference = town_input["grid_reference"]
+    town.easting = town_input["easting"]
+    town.northing = town_input["northing"]
+    town.latitude = town_input["latitude"]
+    town.longitude = town_input["longitude"]
+    town.elevation = town_input["elevation"]
+    town.postcode_sector = town_input["postcode_sector"]
+    town.local_government_area = town_input["local_government_area"]
+    town.nuts_region = town_input["nuts_region"]
+    town.town_type = town_input["town_type"]
     # add the country (parent) to the county (child)
-    county.country = country
-    session.add(county)
+    session.add(town)
     session.commit()
+
+
+session = dbconnect()
+
+with open(r"uk-towns-sample.csv") as csvfile:
+    reader = csv.DictReader(csvfile)
+    for town in reader:
+        addTown(session, town)
